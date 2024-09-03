@@ -3,7 +3,7 @@ on:
   # the github context is always associated with the caller workflow.
   workflow_call:
     inputs:
-      event_path:
+      github_event_path:
         required: false
         type: string
         default: ${{ github.event_path }}
@@ -15,7 +15,8 @@ jobs:
       - name: 'testoing'
         run: |
           echo "testing the changelog audit action"
-          echo ${{ inputs.event_path }}
+          echo ${{ inputs.github_event_path }}
+          cat ${{ inputs.github_event_path }}
 #      - uses: actions/checkout@v4
 #        with:
 #          repository: 'sourcegraph/devx-service'
