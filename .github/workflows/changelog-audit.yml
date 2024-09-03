@@ -1,0 +1,35 @@
+on:
+  # When a reusable workflow is triggered by a caller workflow,
+  # the github context is always associated with the caller workflow.
+  workflow_call:
+    inputs:
+      event_path:
+        required: false
+        type: string
+        default: ${{ github.event_path }}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'sourcegraph/devx-service'
+          token: ${{ secrets.DEVX_TOKEN }}
+
+      - uses: actions/setup-go@v4
+        with: { go-version: '1.22' }
+
+      - run: |
+          # Get the latest release tag name from devx-service
+          tagName=$(gh release -R sourcegraph/devx-service list --exclude-drafts --exclude-pre-releases -L 1 --json tagName -q '.[] | .tagName')
+          # Download the changelog asset from the release
+          gh release -R sourcegraph/devx-service download ${tagName} --pattern changelog
+
+          chmod +x ./changelog
+
+          ./changelog audit
+        env:
+          GITHUB_EVENT_PATH: ${{ inputs.event_path }}
+          GH_TOKEN: ${{ secrets.DEVX_TOKEN }}
+          GITHUB_LOGIN: "sourcegraph-bot-devx"
