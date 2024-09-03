@@ -7,6 +7,13 @@ on:
         required: true
         type: string
 
+    secrets:
+      github_devx_token:
+        required: true
+        description: |
+          This is the token used to checkout the `devx-service` repo and post comments
+          to the pull request in which the audit command is being run against.
+
 jobs:
   audit:
     runs-on: ubuntu-latest
@@ -14,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: 'sourcegraph/devx-service'
-          token: ${{ secrets.DEVX_TOKEN }}
+          token: ${{ secrets.github_devx_token }}
 
       - uses: actions/setup-go@v4
         with: { go-version: '1.22' }
