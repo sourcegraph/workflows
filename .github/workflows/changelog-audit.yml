@@ -14,6 +14,7 @@ jobs:
     steps:
       - name: 'testoing'
         run: |
+          echo "testing the changelog audit action"
           echo ${{ inputs.event_path }}
 #      - uses: actions/checkout@v4
 #        with:
