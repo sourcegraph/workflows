@@ -4,9 +4,8 @@ on:
   workflow_call:
     inputs:
       github_event_path:
-        required: false
+        required: true
         type: string
-        default: ${{ github.event_path }}
 
 jobs:
   audit:
