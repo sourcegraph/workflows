@@ -11,29 +11,24 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - name: 'testoing'
-        run: |
-          echo "testing the changelog audit action"
-          echo ${{ inputs.github_event_path }}
-          cat ${{ inputs.github_event_path }}
-#      - uses: actions/checkout@v4
-#        with:
-#          repository: 'sourcegraph/devx-service'
-#          token: ${{ secrets.DEVX_TOKEN }}
-#
-#      - uses: actions/setup-go@v4
-#        with: { go-version: '1.22' }
-#
-#      - run: |
-#          # Get the latest release tag name from devx-service
-#          tagName=$(gh release -R sourcegraph/devx-service list --exclude-drafts --exclude-pre-releases -L 1 --json tagName -q '.[] | .tagName')
-#          # Download the changelog asset from the release
-#          gh release -R sourcegraph/devx-service download ${tagName} --pattern changelog
-#
-#          chmod +x ./changelog
-#
-#          ./changelog audit
-#        env:
-#          GITHUB_EVENT_PATH: ${{ inputs.event_path }}
-#          GH_TOKEN: ${{ secrets.DEVX_TOKEN }}
-#          GITHUB_LOGIN: "sourcegraph-bot-devx"
+      - uses: actions/checkout@v4
+        with:
+          repository: 'sourcegraph/devx-service'
+          token: ${{ secrets.DEVX_TOKEN }}
+
+      - uses: actions/setup-go@v4
+        with: { go-version: '1.22' }
+
+      - run: |
+          # Get the latest release tag name from devx-service
+          tagName=$(gh release -R sourcegraph/devx-service list --exclude-drafts --exclude-pre-releases -L 1 --json tagName -q '.[] | .tagName')
+          # Download the changelog asset from the release
+          gh release -R sourcegraph/devx-service download ${tagName} --pattern changelog
+
+          chmod +x ./changelog
+
+          ./changelog audit
+        env:
+          GITHUB_EVENT_PATH: ${{ inputs.github_event_path }}
+          GH_TOKEN: ${{ secrets.DEVX_TOKEN }}
+          GITHUB_LOGIN: "sourcegraph-bot-devx"
