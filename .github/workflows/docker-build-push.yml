@@ -1,0 +1,68 @@
+name: build & push container
+
+on:
+  workflow_call:
+    inputs:
+      public:
+        description: 'Should the image be available public, which means it will be pushed to sourcegraph-images/external otherwise sourcegraph-images/internal. Default is false'
+        required: false
+        type: bool
+      name:
+        description: 'name of the container'
+        required: true
+        type: string
+      tag:
+        description: 'Tag to use for the container image'
+        required: true
+        type: string
+      build_context:
+        description: 'Relative path to the build context (e.g., container/)'
+        required: true
+        type: string
+
+jobs:
+  main:
+    name: "Build and push"
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: gcloud workload auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/754785043348/locations/global/workloadIdentityPools/sourcegraph-images-provider/providers/sourcegraph-images-provider"
+          service_account: github-actions-image-publisher@sourcegraph-images.iam.gserviceaccount.com
+
+      - name: gcloud docker auth
+        run: gcloud auth configure-docker us-docker.pkg.dev
+
+      - name: format registry path
+        id: registry-uri
+        uses: actions/github-script@v7
+        with:
+          result-econdig: string
+          env:
+            PUBLIC: ${{ inputs.public }}
+            NAME: ${{ inputs.name }}
+          script: |
+            const { PUBLIC, NAME} = process.env
+            var registry = 'us-docker.pkg.dev/sourcegraph-images'
+            var repo = PUBLIC === 'true' ? "external" : "internal"
+            return `${registry}/${repo}/${NAME}`
+      - name: Build and push images
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ inputs.build_context }}
+          push: true
+          tags: |
+            ${{ steps.registry-uri.outputs.result }}:${{ inputs.tag }}
